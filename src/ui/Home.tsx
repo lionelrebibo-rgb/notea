@@ -1,4 +1,5 @@
-﻿import { COURSES, LESSON_ORDER, findLesson, lessonStars, unlockedSet } from '../content/curriculum';
+import { useEffect, useState } from 'react';
+import { COURSES, LESSON_ORDER, findLesson, lessonStars, unlockedSet } from '../content/curriculum';
 import { minutesOn, streak, today, useProfile } from '../store/store';
 import { Ring, Stars, go } from './common';
 import { ConnectionPill } from './Settings';
@@ -42,6 +43,8 @@ export function Home() {
             </div>
           </div>
         </div>
+
+        <InstallBanner />
 
         <div className="grid">
           <button className="card col" style={{ textAlign: 'left', background: next.course.color }} onClick={() => go(`lesson/${next.lesson.id}`)}>
@@ -102,6 +105,51 @@ export function Home() {
           })}
         </div>
       </div>
+    </div>
+  );
+}
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+}
+
+/** "Install the app" card: native prompt on Android/Chrome, instructions on iPad/iPhone. */
+function InstallBanner() {
+  const [prompt, setPrompt] = useState<any>((window as any).__installPrompt ?? null);
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    const f = () => setPrompt((window as any).__installPrompt ?? null);
+    window.addEventListener('notea-installable', f);
+    return () => window.removeEventListener('notea-installable', f);
+  }, []);
+  if (hidden || isStandalone()) return null;
+  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (!prompt && !ios) return null;
+  return (
+    <div className="card row" style={{ background: 'rgba(54,208,126,0.15)', borderColor: 'rgba(54,208,126,0.4)' }}>
+      <span style={{ fontSize: 30 }}>📲</span>
+      <div className="grow">
+        <b>Installe Notéa sur cet appareil</b>
+        <div className="muted small">
+          {prompt ? 'Elle s’ouvrira comme une vraie appli, en plein écran, même sans internet.' : 'Touche le bouton Partager (carré avec une flèche), puis « Sur l’écran d’accueil ».'}
+        </div>
+      </div>
+      {prompt && (
+        <button
+          className="btn primary small"
+          onClick={async () => {
+            prompt.prompt();
+            await prompt.userChoice.catch(() => null);
+            (window as any).__installPrompt = null;
+            setPrompt(null);
+          }}
+        >
+          Installer
+        </button>
+      )}
+      <button className="icon-btn" aria-label="Masquer" onClick={() => setHidden(true)}>
+        ✕
+      </button>
     </div>
   );
 }

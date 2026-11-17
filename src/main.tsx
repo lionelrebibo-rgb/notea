@@ -6,6 +6,17 @@ import './styles.css';
 
 registerSW({ immediate: true });
 
+// keep Chrome's install prompt so the app can offer its own "Installer" button
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  (window as any).__installPrompt = e;
+  window.dispatchEvent(new Event('notea-installable'));
+});
+window.addEventListener('appinstalled', () => {
+  (window as any).__installPrompt = null;
+  window.dispatchEvent(new Event('notea-installable'));
+});
+
 // keep the screen awake while practising (supported by Chrome on Android)
 async function keepAwake() {
   try {
