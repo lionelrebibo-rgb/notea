@@ -71,7 +71,7 @@ export function MiniKeyboard({ lo = 48, hi = 72, highlight = [], names = true }:
               {midiName(m)}
             </text>
           )}
-          {m === 60 && <circle cx={i * W + W / 2} cy={H - 26} r={3} fill="#7c4dff" />}
+          {m === 60 && <circle cx={i * W + W / 2} cy={H - 26} r={3} fill="#ff3d9a" />}
         </g>
       ))}
       {blacks.map(({ m, x }) => (

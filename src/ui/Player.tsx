@@ -5,7 +5,7 @@ import { StaffRenderer } from '../render/staff';
 import { drawFalling } from '../render/falling';
 import { drawKeyboard, keyAt, makeLayout, rangeFor, type KeyLayout } from '../render/keyboard';
 import { held, onNoteOff, onNoteOn, emitNoteOff, emitNoteOn } from '../input/hub';
-import { connectMidi, hasMidiOut, midiAllOff, midiOutNote, midiState, onMidiState, type MidiStatus } from '../input/midi';
+import { connectBluetooth, connectMidi, hasMidiOut, midiAllOff, midiOutNote, midiState, onMidiState, supportsBluetooth, type MidiStatus } from '../input/midi';
 import { startMic, stopMic } from '../input/mic';
 import * as synth from '../audio/synth';
 import { useProfile, updateSettings } from '../store/store';
@@ -211,7 +211,7 @@ export function Player({ song, config, subtitle, onExit, onDone, nextLabel, onNe
         const auto = new Set<number>(
           s.notes.filter((n) => n.state === 'auto' && n.start <= s.beat && n.start + n.dur > s.beat).map((n) => n.midi),
         );
-        ctx.fillStyle = '#0d0920';
+        ctx.fillStyle = '#1f0617';
         ctx.fillRect(0, topH, w, kbH);
         drawKeyboard(ctx, layout, topH + 3, kbH - 3, {
           pressed,
@@ -224,7 +224,7 @@ export function Player({ song, config, subtitle, onExit, onDone, nextLabel, onNe
         });
 
         // progress bar
-        ctx.fillStyle = 'rgba(124,77,255,0.9)';
+        ctx.fillStyle = 'rgba(255,61,154,0.95)';
         ctx.fillRect(0, 0, w * s.progress(), 3);
       }
       raf = requestAnimationFrame(loopFn);
@@ -277,7 +277,8 @@ export function Player({ song, config, subtitle, onExit, onDone, nextLabel, onNe
     await synth.unlockAudio();
     if (settings.input === 'midi' && midiState().status !== 'connected') {
       const st = await connectMidi();
-      if (st !== 'connected') flash(st === 'unsupported' ? 'MIDI indisponible : utilise le micro ou le clavier écran' : 'Piano non détecté – vérifie le câble USB');
+      if (st !== 'connected')
+        flash(st === 'unsupported' ? 'MIDI indisponible : utilise le micro ou le clavier écran' : 'Piano non détecté – câble USB ou bouton Bluetooth');
     }
     const s = sessionRef.current!;
     if (s.finished || phase === 'done') {
@@ -324,7 +325,9 @@ export function Player({ song, config, subtitle, onExit, onDone, nextLabel, onNe
   const statusText =
     settings.input === 'midi'
       ? midi === 'connected'
-        ? 'Piano connecté'
+        ? midiState().ble
+          ? 'Piano connecté en Bluetooth'
+          : 'Piano connecté'
         : midi === 'unsupported'
           ? 'MIDI non disponible sur cet appareil'
           : 'Piano non connecté'
@@ -485,9 +488,14 @@ export function Player({ song, config, subtitle, onExit, onDone, nextLabel, onNe
                 {loop ? ` · mesures ${loop.from === 0 ? 'levée' : barNum(song, loop.from)}–${barNum(song, loop.to) - 1}` : ''}
               </div>
               {config.anyKey && <div className="chip">🥁 N’importe quelle touche : seul le rythme compte</div>}
-              <div className="row small">
+              <div className="row small wrap" style={{ justifyContent: 'center' }}>
                 <span className="status-dot" style={{ background: statusColor }} />
                 <span>{statusText}</span>
+                {settings.input === 'midi' && midi !== 'connected' && supportsBluetooth() && (
+                  <button className="btn small" onClick={() => connectBluetooth().then((ok) => ok && flash('Piano connecté en Bluetooth 🎹'))}>
+                    📶 Bluetooth
+                  </button>
+                )}
               </div>
               <div className="row wrap" style={{ justifyContent: 'center' }}>
                 <button className="btn" onClick={listen}>

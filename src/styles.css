@@ -1,13 +1,13 @@
 :root {
-  --bg: #1d1638;
-  --bg2: #261d4a;
-  --card: #2f2560;
-  --card2: #3a2e73;
+  --bg: #3a0d2c;
+  --bg2: #4a1239;
+  --card: #5a1846;
+  --card2: #6e2156;
   --line: rgba(255, 255, 255, 0.1);
-  --text: #f6f3ff;
-  --muted: #b8afdd;
-  --accent: #7c4dff;
-  --accent2: #ff5fa2;
+  --text: #fff4fa;
+  --muted: #f3b6d6;
+  --accent: #ff3d9a;
+  --accent2: #ff8cc6;
   --ok: #36d07e;
   --warn: #ffcf33;
   --bad: #ff5a6e;
@@ -85,7 +85,7 @@ h3 {
 .tabbar {
   display: flex;
   justify-content: space-around;
-  background: #150f2b;
+  background: #2a0820;
   border-top: 1px solid var(--line);
   padding: 6px calc(8px + var(--safe-right)) calc(6px + var(--safe-bottom)) calc(8px + var(--safe-left));
   flex-shrink: 0;
@@ -108,7 +108,7 @@ h3 {
 }
 .tabbar button.on {
   color: #fff;
-  background: rgba(124, 77, 255, 0.25);
+  background: rgba(255, 61, 154, 0.28);
 }
 
 /* ---------------- generic ---------------- */
@@ -173,7 +173,7 @@ h3 {
 .btn.primary {
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   border: 0;
-  box-shadow: 0 6px 20px rgba(124, 77, 255, 0.35);
+  box-shadow: 0 6px 20px rgba(255, 61, 154, 0.4);
 }
 .btn.ok {
   background: var(--ok);
@@ -342,7 +342,7 @@ select.text-input {
 
 /* ---------------- home ---------------- */
 .hero {
-  background: linear-gradient(135deg, #6a3df0, #c03fa0);
+  background: linear-gradient(135deg, #ff3d9a, #c2187a);
   border-radius: 24px;
   padding: 18px;
   position: relative;
@@ -462,7 +462,7 @@ select.text-input {
 .player {
   position: fixed;
   inset: 0;
-  background: #120d24;
+  background: #2a0820;
   display: flex;
   flex-direction: column;
   z-index: 50;
@@ -472,7 +472,7 @@ select.text-input {
   align-items: center;
   gap: 8px;
   padding: calc(6px + var(--safe-top)) calc(10px + var(--safe-right)) 6px calc(10px + var(--safe-left));
-  background: #1a1333;
+  background: #3a0d2c;
   flex-shrink: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -517,7 +517,7 @@ select.text-input {
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(10, 6, 24, 0.72);
+  background: rgba(36, 6, 26, 0.72);
   backdrop-filter: blur(3px);
   z-index: 5;
   padding: 16px;
@@ -744,5 +744,5 @@ select.text-input {
 }
 .choice.on {
   border-color: var(--accent);
-  background: rgba(124, 77, 255, 0.18);
+  background: rgba(255, 61, 154, 0.18);
 }

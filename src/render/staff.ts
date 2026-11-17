@@ -109,7 +109,7 @@ export class StaffRenderer {
 
     // loop region
     if (s.opt.loop) {
-      ctx.fillStyle = 'rgba(124,77,255,0.08)';
+      ctx.fillStyle = 'rgba(255,61,154,0.08)';
       const x0 = Math.max(L.headerW, xOf(s.opt.loop.from));
       const x1 = xOf(s.opt.loop.to);
       if (x1 > x0) ctx.fillRect(x0, 0, x1 - x0, h);
@@ -232,7 +232,7 @@ export class StaffRenderer {
     }
 
     // cursor
-    ctx.strokeStyle = s.waiting ? 'rgba(63,123,255,0.85)' : 'rgba(124,77,255,0.55)';
+    ctx.strokeStyle = s.waiting ? 'rgba(63,123,255,0.85)' : 'rgba(255,61,154,0.6)';
     ctx.lineWidth = Math.max(2, sp * 0.25);
     ctx.beginPath();
     ctx.moveTo(L.cursorX, top - sp * 1.5);
@@ -356,7 +356,7 @@ export class StaffRenderer {
       if (opts.fingers) {
         const fingers = (stemUp ? [...chord].reverse() : chord).map((n) => n.finger).filter(Boolean);
         if (fingers.length) {
-          ctx.fillStyle = '#7c4dff';
+          ctx.fillStyle = '#e0287f';
           ctx.font = `700 ${Math.round(Math.max(9, sp * 0.95))}px system-ui, sans-serif`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -369,7 +369,7 @@ export class StaffRenderer {
     } else if (opts.fingers) {
       const f = chord.map((n) => n.finger).filter(Boolean);
       if (f.length) {
-        ctx.fillStyle = '#7c4dff';
+        ctx.fillStyle = '#e0287f';
         ctx.font = `700 ${Math.round(Math.max(9, sp * 0.95))}px system-ui, sans-serif`;
         ctx.textAlign = 'center';
         ctx.fillText(f.join(''), x, pos[pos.length - 1].y - sp * 1.6);

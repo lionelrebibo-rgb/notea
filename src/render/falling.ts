@@ -18,8 +18,8 @@ export function drawFalling(
   const yOf = (b: number) => h - (b - beat) * ppb;
 
   const grad = ctx.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0, '#15102b');
-  grad.addColorStop(1, '#2a1f55');
+  grad.addColorStop(0, '#2a0820');
+  grad.addColorStop(1, '#5a1846');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, w, h);
 
@@ -51,7 +51,7 @@ export function drawFalling(
   }
 
   if (s.opt.loop) {
-    ctx.fillStyle = 'rgba(124,77,255,0.12)';
+    ctx.fillStyle = 'rgba(255,61,154,0.14)';
     const y0 = yOf(s.opt.loop.to);
     const y1 = yOf(s.opt.loop.from);
     ctx.fillRect(0, Math.max(0, y0), w, Math.min(h, y1) - Math.max(0, y0));

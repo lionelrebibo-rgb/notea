@@ -75,7 +75,7 @@ export const COURSES: Course[] = [
     title: 'Premiers pas',
     subtitle: 'Le clavier, le Do et tes premières mélodies',
     emoji: '🐣',
-    color: '#7c4dff',
+    color: '#d6338a',
     lessons: [
       {
         id: 'c1l1',

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { connectMidi, midiState, onMidiState, supportsMidi, type MidiStatus } from '../input/midi';
+import { connectBluetooth, connectMidi, disconnectBluetooth, midiState, onMidiState, supportsBluetooth, supportsMidi, type MidiStatus } from '../input/midi';
 import { startMic, stopMic, supportsMic } from '../input/mic';
 import { onNoteOn } from '../input/hub';
 import { midiNameWithOctave } from '../music/theory';
@@ -19,7 +19,8 @@ export function ConnectionPill() {
   const m = useMidiStatus();
   const input = p.settings.input;
   const ok = input !== 'midi' || m.status === 'connected';
-  const label = input === 'midi' ? (m.status === 'connected' ? 'Piano connecté' : 'Connecter le piano') : input === 'mic' ? 'Micro' : 'Clavier écran';
+  const label =
+    input === 'midi' ? (m.status === 'connected' ? (m.ble ? 'Piano connecté (Bluetooth)' : 'Piano connecté') : 'Connecter le piano') : input === 'mic' ? 'Micro' : 'Clavier écran';
   return (
     <button
       className="chip"
@@ -40,7 +41,7 @@ const STATUS_TEXT: Record<MidiStatus, string> = {
   unsupported: 'Ce navigateur ne gère pas le MIDI. Sur Android, utilise Chrome. Sur iPad, choisis le micro.',
   idle: 'Pas encore connecté.',
   denied: 'Accès MIDI refusé. Autorise « Contrôler les appareils MIDI » dans les réglages du site.',
-  'no-device': 'Aucun piano détecté. Vérifie le câble USB et que le piano est allumé.',
+  'no-device': 'Aucun piano détecté par câble. Vérifie le câble USB et que le piano est allumé, ou connecte-le en Bluetooth ci-dessous.',
   connected: 'Piano connecté !',
 };
 
@@ -89,6 +90,31 @@ export function SettingsScreen() {
                 )}
               </div>
               {m.inputs.length > 0 && <div className="muted small">Entrée : {m.inputs.join(', ')}</div>}
+
+              <div className="card col" style={{ background: 'rgba(0,0,0,0.18)', gap: 8 }}>
+                <b>📶 Sans fil : Bluetooth</b>
+                <div className="muted small">
+                  Si ton Clavinova gère le <b>Bluetooth MIDI</b>, tu peux te passer du câble. Allume le Bluetooth du téléphone, puis touche « Chercher le piano » et choisis le Clavinova dans la liste.
+                  Si le piano n’apparaît pas, il ne gère sans doute que le Bluetooth audio : utilise alors le câble USB.
+                </div>
+                {m.ble ? (
+                  <div className="row">
+                    <span className="status-dot" style={{ background: 'var(--ok)' }} />
+                    <span className="grow">Connecté en Bluetooth : {m.ble}</span>
+                    <button className="btn small" onClick={() => disconnectBluetooth()}>
+                      Déconnecter
+                    </button>
+                  </div>
+                ) : supportsBluetooth() ? (
+                  <button className="btn small primary" style={{ alignSelf: 'flex-start' }} onClick={() => connectBluetooth()}>
+                    📶 Chercher le piano en Bluetooth
+                  </button>
+                ) : (
+                  <div className="muted small">Bluetooth indisponible dans ce navigateur : utilise Chrome sur Android.</div>
+                )}
+                {m.bleError && !m.ble && <div className="small" style={{ color: 'var(--warn)' }}>{m.bleError}</div>}
+                <div className="muted small">En Bluetooth, il y a un léger décalage : si le mode « En rythme » te trouve souvent en retard, augmente la compensation de latence plus bas (essaie 30 à 50 ms).</div>
+              </div>
               <Toggle
                 label="Le piano joue les démos et l’accompagnement"
                 hint="L’appli envoie les notes au Clavinova : tu entends l’autre main sur ton vrai piano."
