@@ -4,7 +4,16 @@ import { registerSW } from 'virtual:pwa-register';
 import App from './App';
 import './styles.css';
 
-registerSW({ immediate: true });
+registerSW({
+  immediate: true,
+  onRegisteredSW(_url, reg) {
+    if (!reg) return;
+    // installed apps (iPad home screen) can stay alive for days: look for a new version on each return
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') reg.update().catch(() => {});
+    });
+  },
+});
 
 // keep Chrome's install prompt so the app can offer its own "Installer" button
 window.addEventListener('beforeinstallprompt', (e) => {

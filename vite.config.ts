@@ -7,6 +7,9 @@ const base = process.env.BASE_PATH || '/';
 
 export default defineConfig({
   base,
+  define: {
+    __BUILD__: JSON.stringify(new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris', dateStyle: 'short', timeStyle: 'short' })),
+  },
   plugins: [
     react(),
     VitePWA({

@@ -36,6 +36,18 @@ export function micLevel() {
   return level;
 }
 
+/** Technical state, shown in the settings to diagnose problems. */
+export function micDiag() {
+  const t = stream?.getAudioTracks()[0];
+  return {
+    active: !!stream,
+    audio: ctx?.state ?? 'none',
+    rate: ctx?.sampleRate ?? 0,
+    track: t ? (t.muted ? 'muted' : t.readyState) : 'none',
+    level,
+  };
+}
+
 /** Last error, as a French message ready to show. */
 export function micError() {
   return lastError;

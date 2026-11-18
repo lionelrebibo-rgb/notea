@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { connectBluetooth, connectMidi, disconnectBluetooth, midiState, onMidiState, supportsBluetooth, supportsMidi, type MidiStatus } from '../input/midi';
-import { micError, micLevel, startMic, stopMic, supportsMic } from '../input/mic';
+import { micDiag, micError, startMic, stopMic, supportsMic } from '../input/mic';
 import { onNoteOn } from '../input/hub';
 import { midiNameWithOctave } from '../music/theory';
 import { updateSettings, useProfile, useRoot, switchProfile } from '../store/store';
@@ -56,6 +56,21 @@ export function SettingsScreen() {
 
   useEffect(() => onNoteOn((e) => setTest(`${midiNameWithOctave(e.midi, s.noteNames)} (${e.source === 'midi' ? 'piano' : e.source === 'mic' ? 'micro' : 'écran'})`)), [s.noteNames]);
   useEffect(() => () => stopMic(), []);
+  // in microphone mode, start listening right away so the note test works without extra taps
+  useEffect(() => {
+    if (s.input !== 'mic' || !supportsMic()) return;
+    let alive = true;
+    startMic().then((ok) => {
+      if (!alive) return;
+      setMicOn(ok);
+      setMicErr(ok ? null : micError());
+    });
+    return () => {
+      alive = false;
+      stopMic();
+      setMicOn(false);
+    };
+  }, [s.input]);
 
   return (
     <div className="screen">
@@ -143,7 +158,7 @@ export function SettingsScreen() {
                     }
                   }}
                 >
-                  {micOn ? 'Arrêter le test du micro' : 'Tester le micro'}
+                  {micOn ? 'Arrêter le micro' : 'Démarrer le micro'}
                 </button>
               )}
               {!supportsMic() && <div className="small" style={{ color: '#ffb3c8' }}>{micError() ?? 'Ce navigateur ne donne pas accès au micro. Sur iPad, utilise Safari.'}</div>}
@@ -232,29 +247,35 @@ export function SettingsScreen() {
             + Ajouter un profil
           </button>
         </div>
+        <div className="muted small" style={{ textAlign: 'center', opacity: 0.6 }}>Notéa · version du {__BUILD__}</div>
       </div>
     </div>
   );
 }
 
-/** Live input level, so you can see whether the microphone hears the piano at all. */
+/** Live input level + technical state, so you can see whether the microphone hears the piano at all. */
 function MicMeter() {
-  const [lv, setLv] = useState(0);
+  const [d, setD] = useState(micDiag());
   useEffect(() => {
-    let r = 0;
-    const loop = () => {
-      setLv(micLevel());
-      r = requestAnimationFrame(loop);
-    };
-    r = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(r);
+    const t = window.setInterval(() => setD(micDiag()), 80);
+    return () => window.clearInterval(t);
   }, []);
+  const lv = d.level;
   return (
     <div className="col" style={{ gap: 4 }}>
-      <div style={{ height: 10, borderRadius: 5, background: 'rgba(0,0,0,0.3)', overflow: 'hidden' }}>
-        <div style={{ width: `${Math.round(lv * 100)}%`, height: '100%', background: 'var(--accent)', transition: 'width 60ms linear' }} />
+      <div style={{ height: 12, borderRadius: 6, background: 'rgba(0,0,0,0.3)', overflow: 'hidden' }}>
+        <div style={{ width: `${Math.max(2, Math.round(lv * 100))}%`, height: '100%', background: 'var(--accent)' }} />
       </div>
-      <div className="muted small">{lv > 0.08 ? 'Le micro entend du son 👍' : 'Joue une note : la barre doit bouger.'}</div>
+      <div className="muted small">
+        {d.audio !== 'running'
+          ? '👆 Touche l’écran une fois pour activer le micro.'
+          : lv > 0.08
+            ? 'Le micro entend du son 👍'
+            : 'Micro allumé : joue une note, la barre doit bouger.'}
+      </div>
+      <div className="muted" style={{ fontSize: 11, opacity: 0.7 }}>
+        diag : audio {d.audio} · {d.rate} Hz · piste {d.track} · niveau {lv.toFixed(2)}
+      </div>
     </div>
   );
 }
