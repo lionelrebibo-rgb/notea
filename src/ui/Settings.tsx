@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { connectBluetooth, connectMidi, disconnectBluetooth, midiState, onMidiState, supportsBluetooth, supportsMidi, type MidiStatus } from '../input/midi';
-import { startMic, stopMic, supportsMic } from '../input/mic';
+import { micError, micLevel, startMic, stopMic, supportsMic } from '../input/mic';
 import { onNoteOn } from '../input/hub';
 import { midiNameWithOctave } from '../music/theory';
 import { updateSettings, useProfile, useRoot, switchProfile } from '../store/store';
@@ -52,6 +52,7 @@ export function SettingsScreen() {
   const m = useMidiStatus();
   const [test, setTest] = useState<string | null>(null);
   const [micOn, setMicOn] = useState(false);
+  const [micErr, setMicErr] = useState<string | null>(null);
 
   useEffect(() => onNoteOn((e) => setTest(`${midiNameWithOctave(e.midi, s.noteNames)} (${e.source === 'midi' ? 'piano' : e.source === 'mic' ? 'micro' : 'écran'})`)), [s.noteNames]);
   useEffect(() => () => stopMic(), []);
@@ -135,12 +136,19 @@ export function SettingsScreen() {
                     if (micOn) {
                       stopMic();
                       setMicOn(false);
-                    } else setMicOn(await startMic());
+                    } else {
+                      const ok = await startMic();
+                      setMicOn(ok);
+                      setMicErr(ok ? null : micError());
+                    }
                   }}
                 >
                   {micOn ? 'Arrêter le test du micro' : 'Tester le micro'}
                 </button>
               )}
+              {!supportsMic() && <div className="small" style={{ color: '#ffb3c8' }}>{micError() ?? 'Ce navigateur ne donne pas accès au micro. Sur iPad, utilise Safari.'}</div>}
+              {micErr && <div className="small" style={{ color: '#ffb3c8' }}>⚠️ {micErr}</div>}
+              {micOn && <MicMeter />}
             </>
           )}
           {s.input === 'touch' && <div className="muted small">Pour jouer sur l’écran, sans piano (pratique pour essayer).</div>}
@@ -225,6 +233,28 @@ export function SettingsScreen() {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Live input level, so you can see whether the microphone hears the piano at all. */
+function MicMeter() {
+  const [lv, setLv] = useState(0);
+  useEffect(() => {
+    let r = 0;
+    const loop = () => {
+      setLv(micLevel());
+      r = requestAnimationFrame(loop);
+    };
+    r = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(r);
+  }, []);
+  return (
+    <div className="col" style={{ gap: 4 }}>
+      <div style={{ height: 10, borderRadius: 5, background: 'rgba(0,0,0,0.3)', overflow: 'hidden' }}>
+        <div style={{ width: `${Math.round(lv * 100)}%`, height: '100%', background: 'var(--accent)', transition: 'width 60ms linear' }} />
+      </div>
+      <div className="muted small">{lv > 0.08 ? 'Le micro entend du son 👍' : 'Joue une note : la barre doit bouger.'}</div>
     </div>
   );
 }

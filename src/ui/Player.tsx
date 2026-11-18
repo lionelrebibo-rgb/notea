@@ -6,7 +6,7 @@ import { drawFalling } from '../render/falling';
 import { drawKeyboard, keyAt, makeLayout, rangeFor, type KeyLayout } from '../render/keyboard';
 import { held, onNoteOff, onNoteOn, emitNoteOff, emitNoteOn } from '../input/hub';
 import { connectBluetooth, connectMidi, hasMidiOut, midiAllOff, midiOutNote, midiState, onMidiState, supportsBluetooth, type MidiStatus } from '../input/midi';
-import { startMic, stopMic } from '../input/mic';
+import { micError, startMic, stopMic } from '../input/mic';
 import * as synth from '../audio/synth';
 import { useProfile, updateSettings } from '../store/store';
 import { barCount, barStart, midiName } from '../music/theory';
@@ -73,7 +73,7 @@ export function Player({ song, config, subtitle, onExit, onDone, nextLabel, onNe
   // input source lifecycle
   useEffect(() => {
     if (settings.input === 'mic') {
-      startMic().then((ok) => !ok && flash('Micro refusé – vérifie les autorisations'));
+      startMic().then((ok) => !ok && flash(micError() ?? 'Micro indisponible'));
       return () => stopMic();
     }
     if (settings.input === 'midi' && midiState().status === 'idle') connectMidi();
@@ -85,7 +85,7 @@ export function Player({ song, config, subtitle, onExit, onDone, nextLabel, onNe
 
   function flash(msg: string) {
     setToast(msg);
-    window.setTimeout(() => setToast((t) => (t === msg ? null : t)), 2200);
+    window.setTimeout(() => setToast((t) => (t === msg ? null : t)), Math.max(2200, msg.length * 60));
   }
 
   const playAuto = (m: number, durSec: number, vel: number) => {
